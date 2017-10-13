@@ -68,26 +68,43 @@ def error(w, x, M, t):
     return poly(w, x, M) - t
 
 """
+define lambda
+"""
+
+
+"""
 calculate w of M form 1 to 9
 """
 parameter = [] #store all the parameters from different M
 error_rms_train = [] #store the rms error of training data
 error_rms_test = [] #store the rms error of testing data
+error_train = [] #store error function of different M
+error_test = [] #store error function of different M
+w_abs = [] #store absolute w square
+
 for order in M:
     w_test = [0] * (order + 1)
     
     curve = leastsq(error, w_test, args=(x_train, order, y_train))
     # calculate the minimum least square error to find all the w    
     parameter.insert(order-1, curve[0]) #store w
-    
+    w_abs.append(sum(curve[0]**2))
     print ("M = ", order)
     print ('w=', parameter[order-1])
+    print ('w^2= ', w_abs[order-1])
     
-    ERMS_train = math.sqrt((sum(error(curve[0], x_train, order, y_train)**2))/x_train.shape[0])
+    #calculate error function
+    E_train = 0.5 * sum(error(curve[0], x_train, order, y_train)**2)
+    E_test = 0.5 * sum(error(curve[0], x_test, order, y_test)**2)
+    
+    ERMS_train = math.sqrt((2*E_train)/x_train.shape[0])
     #print ("traing error: ", ERMS_train)
-    ERMS_test = math.sqrt((sum(error(curve[0], x_test, order, y_test)**2))/x_test.shape[0])
+    ERMS_test = math.sqrt((2*E_test)/x_test.shape[0])
     #print ("testing error: ", ERMS_test)
-    # calculate Erms
+    
+    # calculate Error and Erms
+    error_train.append(E_train)
+    error_test.append(E_test)
     error_rms_train.append(ERMS_train)
     error_rms_test.append(ERMS_test)
     # store Erms
@@ -116,5 +133,37 @@ plt.plot(M, error_rms_test, '-*')
 
 plt.title("root-mean-square error")
 plt.xlabel("M")
+plt.ylabel("ERMS")
+plt.show()
+
+"""
+define lambda
+"""
+lam = np.linspace(0, -20, 100)
+
+"""
+regularized error rms
+"""
+Re_error_train = []
+Re_error_test = []
+
+for l in lam:
+    re_error_train = E_train + 0.5*np.exp(l)*w_abs[8]
+    re_error_test = E_test +0.5*np.exp(l)*w_abs[8]
+    
+    RERMS_train = math.sqrt((2*re_error_train)/x_train.shape[0])
+    RERMS_test = math.sqrt((2*re_error_test)/x_test.shape[0])
+    
+    Re_error_train.append(RERMS_train)
+    Re_error_test.append(RERMS_test)
+
+"""
+plot regularized error
+"""
+plt.plot(lam, Re_error_train)
+plt.plot(lam, Re_error_test)
+
+plt.title("regularization")
+plt.xlabel("ln lambda")
 plt.ylabel("ERMS")
 plt.show()
