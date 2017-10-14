@@ -138,7 +138,11 @@ plt.show()
 define regularized error function
 """
 def re_error(w, x, M, lam, t):
-    return 0.5*((poly(w, x, M))
+    return 0.5*(sum(poly(w, x, M)-t)**2)+0.5*lam*(w**2)
+
+"""
+
+"""
 """
 plot regularized error
 """
