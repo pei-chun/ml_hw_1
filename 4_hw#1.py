@@ -80,7 +80,6 @@ error_rms_train = [] #store the rms error of training data
 error_rms_test = [] #store the rms error of testing data
 error_train = [] #store error function of different M
 error_test = [] #store error function of different M
-w_abs = [] #store absolute w square
 
 for order in M:
     w_test = [0] * (order + 1)
@@ -88,10 +87,8 @@ for order in M:
     curve = leastsq(error, w_test, args=(x_train, order, y_train))
     # calculate the minimum least square error to find all the w    
     parameter.insert(order-1, curve[0]) #store w
-    w_abs.append(sum(curve[0]**2))
     print ("M = ", order)
     print ('w=', parameter[order-1])
-    print ('w^2= ', w_abs[order-1])
     
     #calculate error function
     E_train = 0.5 * sum(error(curve[0], x_train, order, y_train)**2)
@@ -136,27 +133,12 @@ plt.xlabel("M")
 plt.ylabel("ERMS")
 plt.show()
 
+"""----------Regularized----------"""
 """
-define lambda
+define regularized error function
 """
-lam = np.linspace(0, -20, 100)
-
-"""
-regularized error rms
-"""
-Re_error_train = []
-Re_error_test = []
-
-for l in lam:
-    re_error_train = E_train + 0.5*np.exp(l)*w_abs[8]
-    re_error_test = E_test +0.5*np.exp(l)*w_abs[8]
-    
-    RERMS_train = math.sqrt((2*re_error_train)/x_train.shape[0])
-    RERMS_test = math.sqrt((2*re_error_test)/x_test.shape[0])
-    
-    Re_error_train.append(RERMS_train)
-    Re_error_test.append(RERMS_test)
-
+def re_error(w, x, M, lam, t):
+    return 0.5*((poly(w, x, M))
 """
 plot regularized error
 """
