@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import leastsq
+from scipy.optimize import minimize
 
 """
 input data from data set
@@ -68,9 +69,9 @@ def error(w, x, M, t):
     return poly(w, x, M) - t
 
 """
-define lambda
+define natural log lambda
 """
-
+ln_lambda = np.linspace(-20, 0, 20)
 
 """
 calculate w of M form 1 to 9
@@ -134,20 +135,32 @@ plt.ylabel("ERMS")
 plt.show()
 
 """----------Regularized----------"""
-"""
-define regularized error function
-"""
-def re_error(w, x, M, lam, t):
-    return 0.5*(sum(poly(w, x, M)-t)**2)+0.5*lam*(w**2)
 
+def re_error(w, x, t, lam):
+    func = w[0] + w[1]*x + w[2]*(x**2) + w[3]*(x**3) + w[4]*(x**4) + w[5]*(x**5) + w[6]*(x**6) + w[7]*(x**7) + w[8]*(x**8) + w[9]*(x**9)
+    return sum((func - t)**2) + np.exp(lam)*(w[0]**2 + w[1]**2 + w[2]**2 + w[3]**2 + w[4]**2 + w[5]**2 + w[6]**2 + w[7]**2 + w[8]**2 + w[9]**2)
 """
+calculate the regularized error
+"""
+re_erms_train = []
+re_erms_test = []
+# store regularized rms error
 
-"""
+for lam in ln_lambda:
+    re_curve_train = minimize(re_error, w_test, args=(x_train, y_train, lam)).x
+    re_curve_test = minimize(re_error, w_test, args=(x_test, y_test, lam)).x
+    
+    re_error_train = re_error(re_curve_train, x_train, y_train, lam)
+    re_error_test = re_error(re_curve_test, x_test, y_test, lam)
+    
+    re_erms_train.append(math.sqrt((re_error_train)/x_train.shape[0]))
+    re_erms_test.append(math.sqrt((re_error_test)/x_test.shape[0]))
+
 """
 plot regularized error
 """
-plt.plot(lam, Re_error_train)
-plt.plot(lam, Re_error_test)
+plt.plot(ln_lambda, re_erms_train)
+plt.plot(ln_lambda, re_erms_test)
 
 plt.title("regularization")
 plt.xlabel("ln lambda")
