@@ -71,7 +71,7 @@ def error(w, x, M, t):
 """
 define natural log lambda
 """
-ln_lambda = np.linspace(-20, 0, 20)
+ln_lambda = np.linspace(-20, 0, 100)
 
 """
 calculate w of M form 1 to 9
@@ -88,8 +88,8 @@ for order in M:
     curve = leastsq(error, w_test, args=(x_train, order, y_train))
     # calculate the minimum least square error to find all the w    
     parameter.insert(order-1, curve[0]) #store w
-    print ("M = ", order)
-    print ('w=', parameter[order-1])
+    #print ("M = ", order)
+    #print ('w=', parameter[order-1])
     
     #calculate error function
     E_train = 0.5 * sum(error(curve[0], x_train, order, y_train)**2)
@@ -111,17 +111,22 @@ for order in M:
     plot training data in 'o'
     plot polynomial curve
     """
+    """------
     plt.plot(x_train, y_train, 'o')   
     test_curve = np.linspace(0, 7, 100)
     plt.plot(test_curve, poly(curve[0], test_curve, order))
     #plt.plot(x, poly(curve[0], x, order),'*')
+    
+    ------"""
     """
     some details of plot setting
     """
+    """------
     plt.title("training data set (M = %d)"%order)
     plt.xlabel("x")
     plt.ylabel("t")
     plt.show() # call plt.show() to make graphics appear.
+    ------"""
     
 """
 plot error
@@ -147,14 +152,14 @@ re_erms_test = []
 # store regularized rms error
 
 for lam in ln_lambda:
-    re_curve_train = minimize(re_error, w_test, args=(x_train, y_train, lam)).x
-    re_curve_test = minimize(re_error, w_test, args=(x_test, y_test, lam)).x
+    re_curve_train = minimize(re_error, w_test, args=(x_train, y_train, lam), method = 'Nelder-Mead').x
+    re_curve_test = minimize(re_error, w_test, args=(x_test, y_test, lam), method = 'Nelder-Mead').x
     
     re_error_train = re_error(re_curve_train, x_train, y_train, lam)
     re_error_test = re_error(re_curve_test, x_test, y_test, lam)
     
-    re_erms_train.append(math.sqrt((re_error_train)/x_train.shape[0]))
-    re_erms_test.append(math.sqrt((re_error_test)/x_test.shape[0]))
+    re_erms_train.append(math.sqrt(re_error_train/x_train.shape[0]))
+    re_erms_test.append(math.sqrt(re_error_test/x_test.shape[0]))
 
 """
 plot regularized error
