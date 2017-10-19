@@ -71,7 +71,7 @@ def error(w, x, M, t):
 """
 define natural log lambda
 """
-ln_lambda = np.linspace(-20, 0, 100)
+ln_lambda = np.linspace(-20, 0, 20)
 
 """
 calculate w of M form 1 to 9
@@ -153,7 +153,7 @@ re_erms_test = []
 
 for lam in ln_lambda:
     re_curve_train = minimize(re_error, w_test, args=(x_train, y_train, lam), method = 'Nelder-Mead').x
-    re_curve_test = minimize(re_error, w_test, args=(x_test, y_test, lam), method = 'Nelder-Mead').x
+    re_curve_test = minimize(re_error, w_test, args=(x_test, y_test, lam), method = 'SLSQP').x
     
     re_error_train = re_error(re_curve_train, x_train, y_train, lam)
     re_error_test = re_error(re_curve_test, x_test, y_test, lam)
