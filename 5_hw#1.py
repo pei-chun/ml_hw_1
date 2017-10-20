@@ -10,7 +10,6 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
-from scipy.optimize import leastsq
 
 def load():
     """
@@ -36,19 +35,6 @@ def sep_data():
     train_x_col1, train_x_col2, train_x_col3, train_x_col4 = np.hsplit(train_x, 4)[0], np.hsplit(train_x, 4)[1], np.hsplit(train_x, 4)[2], np.hsplit(train_x, 4)[3]
     test_x_col1, test_x_col2, test_x_col3, test_x_col4 = np.hsplit(test_x, 4)[0], np.hsplit(test_x, 4)[1], np.hsplit(test_x, 4)[2], np.hsplit(test_x, 4)[3]
     
-    return train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4
-
-def poly(M):
-    """
-        make basis function
-    """
-    train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4 = sep_data()
-    x_basis_train = np.ones((train_x.shape[0], 1))
-    x_basis_test = np.ones((test_x.shape[0], 1))
-    # basis function
-    x_basis_train = np.hstack((x_basis_train, train_x_col1, train_x_col2, train_x_col3, train_x_col4))
-    x_basis_test = np.hstack((x_basis_test, test_x_col1, test_x_col2, test_x_col3, test_x_col4))
-    
     # train
     train_x_11 = train_x_col1 * train_x_col1
     train_x_12 = train_x_col1 * train_x_col2
@@ -71,7 +57,25 @@ def poly(M):
     test_x_33 = test_x_col3 * test_x_col3
     test_x_34 = test_x_col3 * test_x_col4
     test_x_44 = test_x_col4 * test_x_col4
-        
+    
+    return train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4,\
+train_x_11, train_x_12, train_x_13, train_x_14, train_x_22, train_x_23, train_x_24, train_x_33, train_x_34, train_x_44,\
+test_x_11, test_x_12, test_x_13, test_x_14, test_x_22, test_x_23, test_x_24, test_x_33, test_x_34, test_x_44
+
+def poly(M):
+    """
+        make basis function
+    """
+    train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4,\
+    train_x_11, train_x_12, train_x_13, train_x_14, train_x_22, train_x_23, train_x_24, train_x_33, train_x_34, train_x_44,\
+    test_x_11, test_x_12, test_x_13, test_x_14, test_x_22, test_x_23, test_x_24, test_x_33, test_x_34, test_x_44 = sep_data()
+    
+    x_basis_train = np.ones((train_x.shape[0], 1))
+    x_basis_test = np.ones((test_x.shape[0], 1))
+    # basis function
+    x_basis_train = np.hstack((x_basis_train, train_x_col1, train_x_col2, train_x_col3, train_x_col4))
+    x_basis_test = np.hstack((x_basis_test, test_x_col1, test_x_col2, test_x_col3, test_x_col4))
+    
     if M == 2:
         # basis function
         x_basis_train = np.hstack((x_basis_train,\
@@ -106,28 +110,75 @@ def rms_error(e, N):
     """
     return math.sqrt(e/N)
 
+def conAtt(ex):
+    """
+        find contribution of every attribute
+    """
+    train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4,\
+    train_x_11, train_x_12, train_x_13, train_x_14, train_x_22, train_x_23, train_x_24, train_x_33, train_x_34, train_x_44,\
+    test_x_11, test_x_12, test_x_13, test_x_14, test_x_22, test_x_23, test_x_24, test_x_33, test_x_34, test_x_44= sep_data()
+    
+    x_basis_train = np.ones((train_x.shape[0], 1))
+    x_basis_test = np.ones((test_x.shape[0], 1))
+    
+    if ex == 1:
+        x_basis_train = np.hstack((x_basis_train, train_x_col2, train_x_col3, train_x_col4,\
+                                   train_x_22, train_x_23, train_x_24,\
+                                   train_x_23, train_x_33, train_x_34,\
+                                   train_x_24, train_x_34, train_x_44))
+        x_basis_test = np.hstack((x_basis_test, test_x_col2, test_x_col3, test_x_col4,\
+                                   test_x_22, test_x_23, test_x_24,\
+                                   test_x_23, test_x_33,test_x_34,\
+                                   test_x_24, test_x_34,test_x_44))
+    elif ex == 2:
+        x_basis_train = np.hstack((x_basis_train, train_x_col1, train_x_col3, train_x_col4,\
+                                   train_x_11, train_x_13, train_x_14,\
+                                   train_x_13, train_x_33, train_x_34,\
+                                   train_x_14, train_x_34, train_x_44))
+        x_basis_test = np.hstack((x_basis_test, test_x_col1, test_x_col3, test_x_col4,\
+                                   test_x_11, test_x_13, test_x_14,\
+                                   test_x_13, test_x_33,test_x_34,\
+                                   test_x_14, test_x_34,test_x_44))
+    elif ex == 3:
+        x_basis_train = np.hstack((x_basis_train, train_x_col1, train_x_col2, train_x_col4,\
+                                   train_x_11, train_x_12, train_x_14,\
+                                   train_x_12, train_x_22, train_x_24,\
+                                   train_x_14, train_x_24, train_x_44))
+        x_basis_test = np.hstack((x_basis_test, test_x_col1, test_x_col2, test_x_col4,\
+                                   test_x_11, test_x_12, test_x_14,\
+                                   test_x_12, test_x_22,test_x_24,\
+                                   test_x_14, test_x_24,test_x_44))
+    else:
+        x_basis_train = np.hstack((x_basis_train, train_x_col1, train_x_col2, train_x_col3,\
+                                   train_x_11, train_x_12, train_x_13,\
+                                   train_x_12, train_x_22, train_x_23,\
+                                   train_x_13, train_x_23, train_x_33))
+        x_basis_test = np.hstack((x_basis_test, test_x_col1, test_x_col2, test_x_col3,\
+                                   test_x_11, test_x_12, test_x_13,\
+                                   test_x_12, test_x_22,test_x_23,\
+                                   test_x_13, test_x_23,test_x_33))          
+    return x_basis_train, x_basis_test
 
-def drawError(train_errror_list, test_error_list, title):
-    M = [1, 2]
-    plt.plot(M, train_errror_list, '-o')
-    plt.plot(M, test_error_list, '-*')
+def drawError(x ,train_errror_list, test_error_list, title):
+    plt.plot(x, train_errror_list, '-o')
+    plt.plot(x, test_error_list, '-*')
     plt.title(title)
-    plt.xlabel("M")
     plt.ylabel("ERMS")
     plt.show()
 
 if __name__ == '__main__':
     train_x, train_t, test_x, test_t = load()
     
+    print ('<--evaluate the RMS error of M=1, M=2-->')
     # setting
     M = [1, 2]
-    
+
     # storage
     weight = [] # for w
+    
     train_error = [] # for tarin rms error
-    test_error = []
-    
-    
+    test_error = [] # for train rms error
+   
     for order in M:
         train_x_hyper, test_x_hyper = poly(order)
         
@@ -137,4 +188,28 @@ if __name__ == '__main__':
         train_error.append(rms_error(error(w, train_x_hyper, train_t), train_x.shape[0]))
         test_error.append(rms_error(error(w, test_x_hyper, test_t), test_x.shape[0]))
     
-    drawError(train_error, test_error, "RMS ERROR")
+    drawError(M, train_error, test_error, "RMS ERROR")
+
+    print ('<--find most contributive attribute-->')
+    # setting
+    EX = list(range(1, 5))
+    
+    # storage
+    ex_weight = []
+    
+    ex_train_error = []
+    ex_test_error = []
+    
+    for exclude in EX:
+        ex_train_x_hyper, ex_test_x_hyper = conAtt(exclude)
+        
+        w = getCurve(ex_train_x_hyper, train_t)
+        ex_weight.append(w)
+        
+        ex_train_error.append(rms_error(error(w, ex_train_x_hyper, train_t), train_x.shape[0]))
+        ex_test_error.append(rms_error(error(w, ex_test_x_hyper, test_t), test_x.shape[0]))
+        
+    drawError(EX, ex_train_error, ex_test_error, "Contributive attribute RMS ERROR")
+        
+
+    
