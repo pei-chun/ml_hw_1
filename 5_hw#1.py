@@ -38,38 +38,74 @@ def sep_data():
     
     return train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4
 
-def poly(w, x1, x2, x3, x4, M):
+def poly(M):
     """
-        A general polynomial form
+        make basis function
     """
+    train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4 = sep_data()
+    x_basis_train = np.ones((train_x.shape[0], 1))
+    x_basis_test = np.ones((test_x.shape[0], 1))
+    # basis function
+    x_basis_train = np.hstack((x_basis_train, train_x_col1, train_x_col2, train_x_col3, train_x_col4))
+    x_basis_test = np.hstack((x_basis_test, test_x_col1, test_x_col2, test_x_col3, test_x_col4))
     
-    if M == 1:
-        w0, w1, w2, w3, w4 = w
-        func = w0 + w1*x1 + w2*x2 + w3*x2 + w4*x4
-    elif M == 2:
-        w0, w1, w2, w3, w4,\
-        w11, w12, w13, w14,\
-        w21, w22, w23, w24,\
-        w31, w32, w33, w34,\
-        w41, w42, w43, w44 = w
-        func = w0 + w1*x1 + w2*x2 + w3*x3 + w4*x4\
-        + w11*x1*x1 + w12*x1*x2 + w13*x1*x3 + w14*x1*x4\
-        + w21*x2*x1 + w22*x2*x2 + w23*x2*x3 + w24*x2*x4\
-        + w31*x3*x1 + w32*x3*x2 + w33*x3*x3 + w34*x3*x4\
-        + w41*x4*x1 + w42*x4*x2 + w43*x4*x3 + w44*x4*x4
-    return func
+    # train
+    train_x_11 = train_x_col1 * train_x_col1
+    train_x_12 = train_x_col1 * train_x_col2
+    train_x_13 = train_x_col1 * train_x_col3
+    train_x_14 = train_x_col1 * train_x_col4
+    train_x_22 = train_x_col2 * train_x_col2
+    train_x_23 = train_x_col2 * train_x_col3
+    train_x_24 = train_x_col2 * train_x_col4
+    train_x_33 = train_x_col3 * train_x_col3
+    train_x_34 = train_x_col3 * train_x_col4
+    train_x_44 = train_x_col4 * train_x_col4
+    # test
+    test_x_11 = test_x_col1 * test_x_col1
+    test_x_12 = test_x_col1 * test_x_col2
+    test_x_13 = test_x_col1 * test_x_col3
+    test_x_14 = test_x_col1 * test_x_col4
+    test_x_22 = test_x_col2 * test_x_col2
+    test_x_23 = test_x_col2 * test_x_col3
+    test_x_24 = test_x_col2 * test_x_col4
+    test_x_33 = test_x_col3 * test_x_col3
+    test_x_34 = test_x_col3 * test_x_col4
+    test_x_44 = test_x_col4 * test_x_col4
+        
+    if M == 2:
+        # basis function
+        x_basis_train = np.hstack((x_basis_train,\
+                                   train_x_11, train_x_12, train_x_13, train_x_14,\
+                                   train_x_12, train_x_22, train_x_23, train_x_24,\
+                                   train_x_13, train_x_23, train_x_33, train_x_34,\
+                                   train_x_14, train_x_24, train_x_34, train_x_44))
+        x_basis_test = np.hstack((x_basis_test,\
+                                   test_x_11, test_x_12, test_x_13, test_x_14,\
+                                   test_x_12, test_x_22, test_x_23, test_x_24,\
+                                   test_x_13, test_x_23, test_x_33,test_x_34,\
+                                   test_x_14, test_x_24, test_x_34,test_x_44))
+    
+    return x_basis_train, x_basis_test
 
-def error(w, x1, x2, x3, x4, M, t):
+def getCurve(x, t):
+    """
+        W* = (X^T * X)^-1 * X^T * Y
+    """
+    return np.dot(np.dot(np.linalg.pinv(np.dot(x.T, x)), x.T), t)
+
+def error(w, x, t):
     """
         error function
     """
-    return poly(w, x1, x2, x3, x4, M) - t
+    return 0.5* np.sum((np.dot(x, w) - t) ** 2)
+
 
 def rms_error(e, N):
     """
         RMS error function
     """
     return math.sqrt(e/N)
+
 
 def drawError(train_errror_list, test_error_list, title):
     M = [1, 2]
@@ -82,10 +118,10 @@ def drawError(train_errror_list, test_error_list, title):
 
 if __name__ == '__main__':
     train_x, train_t, test_x, test_t = load()
-    train_x_col1, train_x_col2, train_x_col3, train_x_col4, test_x_col1, test_x_col2, test_x_col3, test_x_col4 = sep_data()
+    
     # setting
     M = [1, 2]
-    w_test = [[0]*5, [0]*21]
+    
     # storage
     weight = [] # for w
     train_error = [] # for tarin rms error
@@ -93,10 +129,12 @@ if __name__ == '__main__':
     
     
     for order in M:
-        w = leastsq(error, w_test[order], args=(train_x_col1, train_x_col2, train_x_col3, train_x_col4, order, train_t))
-        weight.append(w[0])
+        train_x_hyper, test_x_hyper = poly(order)
         
-        train_error.append(rms_error(error(w[0], train_x, D, train_t), train_x.shape[0]))
-        test_error.append(rms_error(error(w[0], test_x, D, test_t), test_x.shape[0]))
+        w = getCurve(train_x_hyper, train_t)
+        weight.append(w)
+        
+        train_error.append(rms_error(error(w, train_x_hyper, train_t), train_x.shape[0]))
+        test_error.append(rms_error(error(w, test_x_hyper, test_t), test_x.shape[0]))
     
     drawError(train_error, test_error, "RMS ERROR")
