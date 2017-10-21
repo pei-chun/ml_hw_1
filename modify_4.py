@@ -70,6 +70,13 @@ def drawError(x ,train_errror_list, test_error_list, title):
     plt.ylabel("ERMS")
     plt.show()
 
+def drawReError(x ,train_errror_list, test_error_list, title):
+    plt.plot(x, train_errror_list)
+    plt.plot(x, test_error_list)
+    plt.title(title)
+    plt.ylabel("ERMS")
+    plt.show()
+    
 if __name__ == '__main__':
     train_x, train_t, test_x, test_t = load()
     
@@ -97,7 +104,7 @@ if __name__ == '__main__':
     
     print('<--Regularzed RMS Erro for M = 9-->')
     # setting
-    ln_lambda = np.linspace(-20, 0, 10)
+    ln_lambda = np.linspace(-20, 2.5, 100)
     _lambda = np.exp(ln_lambda)
     
     # storage
@@ -113,4 +120,4 @@ if __name__ == '__main__':
         Re_train_error.append(rms_error(error(w, train_x_hyper, train_t), train_x.shape[0]))
         Re_test_error.append(rms_error(error(w, test_x_hyper, test_t), test_x.shape[0]))
         
-    drawError(ln_lambda, Re_train_error, Re_test_error, "Regularzed RMS ERROR")
+    drawReError(ln_lambda, Re_train_error, Re_test_error, "RMS ERRROR")
